@@ -15,6 +15,10 @@ class Tokenizer:
         self.pad = self.special_tokens["pad"]
         self.eos = self.special_tokens["eos"]
         self.unk = self.special_tokens["unk"]
+        self.bos_ids = self.token_ids_table[self.bos]
+        self.pad_ids = self.token_ids_table[self.pad]
+        self.eos_ids = self.token_ids_table[self.eos]
+        self.unk_ids = self.token_ids_table[self.unk]
         self.__en_ids_token_table = self.__ids_token_table("en")
         self.__zh_ids_token_table = self.__ids_token_table("zh")
 
@@ -74,7 +78,7 @@ if __name__ == '__main__':
     print(tokenizer.decode(s2, lang_type="en"))
     print(tokenizer.decode(s3, lang_type="en"))
 
-    token_list = ['是', '湯姆救', '了', '這個', '二hi发货','小女孩', '。']
+    token_list = ['是', '湯姆救', '了', '這個', '二hi发货', '小女孩', '。']
     s1 = tokenizer.encode(token_list, lang_type="zh", to_length=5)
     s2 = tokenizer.encode(token_list, lang_type="zh")
     s3 = tokenizer.encode(token_list, lang_type="zh", to_length=10)

@@ -3,9 +3,10 @@ import random
 from torch.utils import data
 from typing import *
 import torch
-from utils.commen import load_data, setup_seed
+from utils.common import load_data, setup_seed
 from utils.tokenizer import Tokenizer
 from torch.nn.utils.rnn import pad_sequence
+from config.model_config import common_config
 
 setup_seed(2333)
 tokenizer = Tokenizer()
@@ -63,11 +64,8 @@ def split_dataset():
 
 
 train_set, valid_set, test_set = split_dataset()
-train_loader = data.DataLoader(dataset=train_set, batch_size=3, shuffle=True, collate_fn=collate_fn)
+train_loader = data.DataLoader(dataset=train_set, batch_size=common_config.batch_size, shuffle=True,
+                               collate_fn=collate_fn)
 
 if __name__ == '__main__':
-    split_dataset()
-    # train_data = load_data()
-    # data_set = MyDataset(train_data)
-    # loader = data.DataLoader(dataset=data_set, batch_size=3, shuffle=True, collate_fn=collate_fn)
-    # print(len(data_set))
+    pass

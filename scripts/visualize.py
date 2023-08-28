@@ -1,4 +1,4 @@
-from utils.commen import load_data
+from utils.common import load_data
 import matplotlib.pyplot as plt
 from typing import *
 

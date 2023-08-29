@@ -1,6 +1,6 @@
 import json
 
-from utils.load_data import load_data
+from utils.common import load_data
 
 """
 给中英语言构造token->ids映射，保存在config中。

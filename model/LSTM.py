@@ -1,9 +1,10 @@
 import torch
 import torch.nn as nn
+from typing import *
 
 
 class Seq2SeqEncoder(nn.Module):
-    def __init__(self, vocab_size, embed_size, num_hiddens, num_layers, pad_ids, dropout=0):
+    def __init__(self, vocab_size, embed_size, num_hiddens, num_layers, pad_ids, dropout=0.):
         super().__init__()
         self.emb = nn.Embedding(num_embeddings=vocab_size, embedding_dim=embed_size, padding_idx=pad_ids)
         self.lstm = nn.LSTM(input_size=embed_size, hidden_size=num_hiddens, num_layers=num_layers, dropout=dropout,
@@ -17,7 +18,7 @@ class Seq2SeqEncoder(nn.Module):
 
 class Seq2SeqDecoder(nn.Module):
     # num_hiddens要和Encoder相同
-    def __init__(self, vocab_size, embed_size, num_hiddens, num_layers, pad_ids, dropout=0):
+    def __init__(self, vocab_size, embed_size, num_hiddens, num_layers, pad_ids, dropout=0.):
         super().__init__()
         self.num_layers = num_layers
         self.emb = nn.Embedding(num_embeddings=vocab_size, embedding_dim=embed_size, padding_idx=pad_ids)
@@ -31,16 +32,35 @@ class Seq2SeqDecoder(nn.Module):
         enc_hn = enc_state[0][-self.num_layers:]  # 用切片可以保留维度
         enc_cn = enc_state[1][-self.num_layers:]
         output, state = self.lstm(x, (enc_hn, enc_cn))
-        output = self.fc(output)
+        output = self.fc(output)  # [bs, seq_len, vocab_size]
+        return output
+
+
+class Seq2SeqLSTM(nn.Module):
+    def __init__(self, vocab_size_en, vocab_size_zh, embed_size_en, embed_size_zh, num_layers_en, num_layers_zh,
+                 num_hiddens, pad_ids, dropout=0.):
+        super().__init__()
+        assert num_layers_en >= num_layers_zh
+        self.encoder = Seq2SeqEncoder(vocab_size=vocab_size_en, embed_size=embed_size_en, num_hiddens=num_hiddens,
+                                      num_layers=num_layers_en, pad_ids=pad_ids, dropout=dropout)
+        self.decoder = Seq2SeqDecoder(vocab_size=vocab_size_zh, embed_size=embed_size_zh, num_hiddens=num_hiddens,
+                                      num_layers=num_layers_zh, pad_ids=pad_ids, dropout=dropout)
+
+    def forward(self, en_x, zh_x):
+        _, state = self.encoder(en_x)
+        output = self.decoder(zh_x, state)
         return output
 
 
 if __name__ == '__main__':
-    encoder = Seq2SeqEncoder(vocab_size=10, embed_size=8, num_hiddens=3, num_layers=2, pad_ids=1)
-    X = torch.zeros((12, 7), dtype=torch.long)
-    output, state = encoder(X)
-    # print(output.size(), state[0].size(), state[1].size())
-    decoder = Seq2SeqDecoder(vocab_size=20, embed_size=13, num_hiddens=3, num_layers=1, pad_ids=1)
-    X = torch.zeros((12, 7), dtype=torch.long)
-    output = decoder(X, state)
-    print(output.shape)
+    vocab_size_en, vocab_size_zh = 10, 20
+    embed_size_en, embed_size_zh = 5, 8
+    num_layers_en, num_layers_zh = 2, 2
+    hidden_size, pad_ids, dropout = 3, 0, 0.1
+    seq2seq = Seq2SeqLSTM(vocab_size_en=vocab_size_en, vocab_size_zh=vocab_size_zh, embed_size_en=embed_size_en,
+                          embed_size_zh=embed_size_zh, num_hiddens=hidden_size, num_layers_zh=num_layers_zh,
+                          num_layers_en=num_layers_en, pad_ids=pad_ids, dropout=dropout)
+    en_x = torch.tensor([[1,2,3,4,0],[5,2,6,0,0],[4,5,5,6,7]])
+    zh_x = torch.tensor([[5,15,2,0],[14,13,0,0],[1,2,3,3]])
+    out = seq2seq(en_x, zh_x)
+    print(out.shape)

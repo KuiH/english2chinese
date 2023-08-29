@@ -7,9 +7,9 @@ class Tokenizer:
     special_tokens = None
 
     def __init__(self):
-        with open(r"../config/token_ids_table.json", 'r', encoding='utf-8') as f:
+        with open(r"config/token_ids_table.json", 'r', encoding='utf-8') as f:
             Tokenizer.token_ids_table = json.load(f)
-        with open(r"../config/special_tokens.json", 'r', encoding='utf-8') as f:
+        with open(r"config/special_tokens.json", 'r', encoding='utf-8') as f:
             Tokenizer.special_tokens = json.load(f)
         self.bos = self.special_tokens["bos"]
         self.pad = self.special_tokens["pad"]
@@ -45,6 +45,7 @@ class Tokenizer:
 
     def decode(self, ids_list, lang_type: str):
         """ids list解码成str"""
+        # TODO: 处理ids_list为tensor的情况
         decoded_list = []
         res_str = ""
         assert lang_type in ("en", "zh")
@@ -57,6 +58,10 @@ class Tokenizer:
                 decoded_list.append(self.__zh_ids_token_table[i])
             res_str = "".join(decoded_list)
         return res_str
+
+    def vocab_size(self, lang_type: str):
+        assert lang_type in ("en", "zh")
+        return len(self.__en_ids_token_table) if lang_type == "en" else len(self.__zh_ids_token_table)
 
     def __ids_token_table(self, lang_type: str):
         assert lang_type in ("en", "zh")
@@ -85,3 +90,6 @@ if __name__ == '__main__':
     print(tokenizer.decode(s1, lang_type="zh"))
     print(tokenizer.decode(s2, lang_type="zh"))
     print(tokenizer.decode(s3, lang_type="zh"))
+
+    print(tokenizer.vocab_size("en"))
+    print(tokenizer.vocab_size("zh"))

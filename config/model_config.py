@@ -1,19 +1,14 @@
 class CommonConfig:
-    def __init__(self):
-        self.batch_size = 128
-        self.cuda = True
-        self.lr = 1e-4
-        self.dropout = 0.1
+    batch_size = 64 # 128
+    cuda = True
+    lr = 1e-4
+    dropout = 0.1
+    epoch = 50
 
 
 class LSTMConfig:
-    def __init__(self):
-        self.embed_size_en = 1024
-        self.embed_size_zh = 2048
-        self.num_layers_en = 2
-        self.num_layers_zh = 2
-        self.hidden_size = 512
-
-
-common_config = CommonConfig()
-lstm_config = LSTMConfig()
+    embed_size_en = 64  # 1024
+    embed_size_zh = 64  # 2048
+    num_layers_en = 2
+    num_layers_zh = 2
+    hidden_size = 64  # 512

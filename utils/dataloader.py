@@ -1,12 +1,11 @@
 import random
-
 from torch.utils import data
 from typing import *
 import torch
 from utils.common import load_data, setup_seed
 from utils.tokenizer import Tokenizer
 from torch.nn.utils.rnn import pad_sequence
-from config.model_config import common_config
+from config.model_config import CommonConfig
 
 setup_seed(2333)
 tokenizer = Tokenizer()
@@ -42,7 +41,21 @@ def collate_fn(batch: List[Tuple]):
     # print(tokenizer.decode(pad_src[2].numpy(), lang_type="en"))
     # print(tokenizer.decode(pad_dec_input[2].numpy(), lang_type="zh"))
     # print(tokenizer.decode(pad_tgt[2].numpy(), lang_type="zh"))
-    return pad_src, pad_dec_input, pad_tgt
+
+    # 找pad_tgt的有效长度，即没有pad的部分的长度
+    valid_lens = []
+    for tgt in pad_tgt:
+        for i in range(len(tgt) - 1, -1, -1):
+            if tgt[i] != tokenizer.pad_ids:
+                valid_lens.append(i + 1)
+                break
+    valid_lens = torch.tensor(valid_lens,dtype=torch.long)
+    if CommonConfig.cuda:
+        pad_src = pad_src.cuda()
+        pad_dec_input = pad_dec_input.cuda()
+        pad_tgt = pad_tgt.cuda()
+        valid_lens = valid_lens.cuda()
+    return pad_src, pad_dec_input, pad_tgt, valid_lens
 
 
 # 切分数据集
@@ -52,7 +65,7 @@ def split_dataset():
     valid_num = int(total_num * valid_part)
     test_num = int(total_num * test_part)
     train_num = total_num - valid_num - test_num
-    total_data = load_data(r"../dataset/en_zh.pkl")
+    total_data = load_data(r"dataset/en_zh.pkl")
     random.shuffle(total_data)
     train_data = total_data[:train_num]
     valid_data = total_data[train_num:valid_num + train_num]
@@ -64,8 +77,15 @@ def split_dataset():
 
 
 train_set, valid_set, test_set = split_dataset()
-train_loader = data.DataLoader(dataset=train_set, batch_size=common_config.batch_size, shuffle=True,
+train_loader = data.DataLoader(dataset=train_set, batch_size=CommonConfig.batch_size, shuffle=True,
                                collate_fn=collate_fn)
+valid_loader = data.DataLoader(dataset=valid_set, batch_size=CommonConfig.batch_size, shuffle=False,
+                               collate_fn=collate_fn)
+test_loader = data.DataLoader(dataset=test_set, batch_size=CommonConfig.batch_size, shuffle=False,
+                              collate_fn=collate_fn)
 
 if __name__ == '__main__':
-    pass
+    for a,b,c,d in test_loader:
+        print(c)
+        print(d)
+        break

@@ -83,10 +83,10 @@ if __name__ == '__main__':
     print(tokenizer.decode(s2, lang_type="en"))
     print(tokenizer.decode(s3, lang_type="en"))
 
-    token_list = ['是', '湯姆救', '了', '這個', '二hi发货', '小女孩', '。']
-    s1 = tokenizer.encode(token_list, lang_type="zh", to_length=5)
+    token_list = ['是', '湯', '姆', '救', '了', '這', '個', '二', 'hi', '发', '货', '小', '女', '孩', '。']
+    s1 = tokenizer.encode(token_list, lang_type="zh", to_length=7)
     s2 = tokenizer.encode(token_list, lang_type="zh")
-    s3 = tokenizer.encode(token_list, lang_type="zh", to_length=10)
+    s3 = tokenizer.encode(token_list, lang_type="zh", to_length=18)
     print(tokenizer.decode(s1, lang_type="zh"))
     print(tokenizer.decode(s2, lang_type="zh"))
     print(tokenizer.decode(s3, lang_type="zh"))

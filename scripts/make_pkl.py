@@ -36,8 +36,8 @@ def segment_word(pairs: List[Tuple]):
         return new_sen.lower().strip().split(' ')
 
     def segment_zh(sentence: str):
-        """调库分词"""
-        return list(jieba.cut(sentence))
+        """按字分隔"""
+        return list(sentence)
 
     new_pairs = [(segment_en(p[0]), segment_zh(p[1])) for p in pairs]
     del pairs
@@ -53,3 +53,4 @@ def save_pickle(data, path: str):
 if __name__ == '__main__':
     segmented_pairs = segment_word(en_zh_pairs())
     save_pickle(segmented_pairs, r'../dataset/en_zh.pkl')
+    print(segmented_pairs[:10])

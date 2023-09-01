@@ -1,15 +1,17 @@
 import json
 from typing import *
 
+import torch
+
 
 class Tokenizer:
     token_ids_table = None
     special_tokens = None
 
     def __init__(self):
-        with open(r"config/token_ids_table.json", 'r', encoding='utf-8') as f:
+        with open(r"../config/token_ids_table.json", 'r', encoding='utf-8') as f:
             Tokenizer.token_ids_table = json.load(f)
-        with open(r"config/special_tokens.json", 'r', encoding='utf-8') as f:
+        with open(r"../config/special_tokens.json", 'r', encoding='utf-8') as f:
             Tokenizer.special_tokens = json.load(f)
         self.bos = self.special_tokens["bos"]
         self.pad = self.special_tokens["pad"]
@@ -43,18 +45,23 @@ class Tokenizer:
                     ids_list.append(self.token_ids_table[self.unk])
         return ids_list
 
-    def decode(self, ids_list, lang_type: str):
+    def decode(self, ids_list: Union[torch.Tensor, List], lang_type: str):
         """ids list解码成str"""
         # TODO: 处理ids_list为tensor的情况
         decoded_list = []
         res_str = ""
         assert lang_type in ("en", "zh")
+        if isinstance(ids_list, torch.Tensor):
+            copy_list = ids_list.numpy().tolist()
+        else:  # 是List
+            copy_list = ids_list
+
         if lang_type == "en":
-            for i in ids_list:
+            for i in copy_list:
                 decoded_list.append(self.__en_ids_token_table[i])
             res_str = " ".join(decoded_list)
         else:
-            for i in ids_list:
+            for i in copy_list:
                 decoded_list.append(self.__zh_ids_token_table[i])
             res_str = "".join(decoded_list)
         return res_str
@@ -87,6 +94,9 @@ if __name__ == '__main__':
     s1 = tokenizer.encode(token_list, lang_type="zh", to_length=7)
     s2 = tokenizer.encode(token_list, lang_type="zh")
     s3 = tokenizer.encode(token_list, lang_type="zh", to_length=18)
+    s1 = torch.tensor(s1)
+    s2 = torch.tensor(s2)
+    s3 = torch.tensor(s3)
     print(tokenizer.decode(s1, lang_type="zh"))
     print(tokenizer.decode(s2, lang_type="zh"))
     print(tokenizer.decode(s3, lang_type="zh"))

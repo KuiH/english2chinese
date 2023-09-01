@@ -9,9 +9,9 @@ class Tokenizer:
     special_tokens = None
 
     def __init__(self):
-        with open(r"../config/token_ids_table.json", 'r', encoding='utf-8') as f:
+        with open(r"config/token_ids_table.json", 'r', encoding='utf-8') as f:
             Tokenizer.token_ids_table = json.load(f)
-        with open(r"../config/special_tokens.json", 'r', encoding='utf-8') as f:
+        with open(r"config/special_tokens.json", 'r', encoding='utf-8') as f:
             Tokenizer.special_tokens = json.load(f)
         self.bos = self.special_tokens["bos"]
         self.pad = self.special_tokens["pad"]
@@ -52,18 +52,20 @@ class Tokenizer:
         res_str = ""
         assert lang_type in ("en", "zh")
         if isinstance(ids_list, torch.Tensor):
-            copy_list = ids_list.numpy().tolist()
+            if ids_list.device.type == 'cuda':  # 在gpu
+                copy_list = ids_list.cpu().numpy().tolist()
+            else:
+                copy_list = ids_list.numpy().tolist()
         else:  # 是List
             copy_list = ids_list
 
         if lang_type == "en":
             for i in copy_list:
                 decoded_list.append(self.__en_ids_token_table[i])
-            res_str = " ".join(decoded_list)
         else:
             for i in copy_list:
                 decoded_list.append(self.__zh_ids_token_table[i])
-            res_str = "".join(decoded_list)
+        res_str = " ".join(decoded_list)
         return res_str
 
     def vocab_size(self, lang_type: str):

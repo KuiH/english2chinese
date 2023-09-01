@@ -1,3 +1,4 @@
+import random
 import time
 import torch
 import torch.nn as nn
@@ -66,12 +67,14 @@ def report_res(dataloader: data.DataLoader):
         for batch_ids in batch_ids_list:  # 这样可以遍历batch
             out_str = tokenizer.decode(batch_ids, lang_type="zh")
             eos_index = out_str.find(tokenizer.eos)
-            out_str = out_str[:len(out_str) if eos_index < 0 else eos_index]
+            out_str = out_str[:(len(out_str) if eos_index < 0 else eos_index - 1)]  # -1是因为eos前面有个空格
             out_strs.append(out_str)
         return out_strs
 
     start = time.time()
     model.eval()
+    max_samples = 8  # 取几个样本看看结果
+    n_samples = 0
     with torch.no_grad():
         total = 0
         sum_bleu = 0.0
@@ -81,22 +84,29 @@ def report_res(dataloader: data.DataLoader):
             out_seqs = torch.argmax(out, dim=2)  # out_seq: [bs, seq_len]
             out_strs: List[str] = batch_str(out_seqs)
             tgt_strs: List[str] = batch_str(batch_tgt)
-            bleu_scores = bleu(reference=tgt_strs, candidate=out_strs)
-
-            # TODO: bleu求和
-            sum_bleu += sum(bleu_scores)
+            if n_samples < max_samples and random.randint(0, 8) == 4:
+                print(f"tgt: {tgt_strs[-1]}\npred: {out_strs[-1]}")
+                n_samples += 1
+            bleu_scores = bleu(references=tgt_strs, candidates=out_strs)
+            sum_bleu += sum(bleu_scores)  # 对上面的bleu list求和。return的时候再求平均
     end = time.time()
     print(f"report result uses time: {end - start}")
-    return sum_bleu / total
+    print(f"bleu: {sum_bleu / total}")
 
 
 def main():
     print("begin training...")
+    save_path = rf'checkpoints/{log_name}.ckpt'
     start = time.time()
+    min_valid_loss = 9999
     for epoch_ in range(epoch):
         ticket = time.time()
         test_loss = test_model(test_loader)
         valid_loss = test_model(valid_loader)
+        if valid_loss < min_valid_loss:
+            print(f"New valid loss: {valid_loss}")
+            min_valid_loss = valid_loss
+            torch.save(model.state_dict(), save_path)
         append_log_valid_test(valid_loss, test_loss, epoch_, writer)
         model.train()
         epoch_loss = 0
@@ -111,12 +121,12 @@ def main():
             optimizer.step()
             epoch_loss += batch_loss.sum()
         end = time.time()
-        append_log_train(epoch_loss / total, epoch, writer)
+        append_log_train(epoch_loss / total, epoch_, writer)
         print(f"epoch {epoch_}, loss: {epoch_loss / total}, time: {end - ticket}")
     end = time.time()
     print(f"train uses time: {end - start}")
-    torch.save(model.state_dict(), rf'checkpoints/{log_name}.ckpt')
 
+    model.load_state_dict(torch.load(save_path))
     print("train set result:")
     report_res(train_loader)
     print("valid set result:")
@@ -127,3 +137,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+    # report_res(test_loader)
+
+

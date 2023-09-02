@@ -8,4 +8,4 @@
 
 ## TODO
 
-- [ ] LSTM
+- [x] LSTM

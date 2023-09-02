@@ -47,7 +47,6 @@ class Tokenizer:
 
     def decode(self, ids_list: Union[torch.Tensor, List], lang_type: str):
         """ids list解码成str"""
-        # TODO: 处理ids_list为tensor的情况
         decoded_list = []
         res_str = ""
         assert lang_type in ("en", "zh")

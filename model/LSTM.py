@@ -33,7 +33,7 @@ class Seq2SeqDecoder(nn.Module):
         enc_cn = enc_state[1][-self.num_layers:]
         output, state = self.lstm(x, (enc_hn, enc_cn))
         output = self.fc(output)  # [bs, seq_len, vocab_size]
-        return output
+        return output, state
 
 
 class Seq2SeqLSTM(nn.Module):
@@ -48,7 +48,7 @@ class Seq2SeqLSTM(nn.Module):
 
     def forward(self, en_x, zh_x):
         _, state = self.encoder(en_x)
-        output = self.decoder(zh_x, state)
+        output, _ = self.decoder(zh_x, state)
         return output
 
 

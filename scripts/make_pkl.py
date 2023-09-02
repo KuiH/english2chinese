@@ -1,6 +1,8 @@
 from typing import *
 import pickle
 
+from utils.common import segment_zh, segment_en
+
 """
 制作pickle之后的数据。格式:
 [(en0,zh0),(en1,zh1),...]
@@ -23,21 +25,6 @@ def en_zh_pairs():
 
 
 def segment_word(pairs: List[Tuple]):
-    def segment_en(sentence: str):
-        """以空格分隔，标点符号与句子分开，单引号不分"""
-        punctuation = set(',.;:\"?!')
-        new_sen = ""
-        for i, c in enumerate(sentence):
-            if c in punctuation:
-                new_sen += f"{c} " if i == 0 else f" {c}"
-            else:
-                new_sen += c
-        return new_sen.lower().strip().split(' ')
-
-    def segment_zh(sentence: str):
-        """按字分隔"""
-        return list(sentence)
-
     new_pairs = [(segment_en(p[0]), segment_zh(p[1])) for p in pairs]
     del pairs
     return new_pairs
